@@ -17,6 +17,7 @@
           v-bind:config="item"
           @input="formInput"
           @select="formSelect"
+          :value.sync="saveData.openBillInfomation[item.name]"
         ></form-item>
       </div>
     </el-row>
@@ -33,6 +34,7 @@
           @select="formSelect"
           @selectArea="formSelectArea"
           @consignPicker="consignPicker"
+          :value.sync="saveData.consigner[item.name]"
           ></form-item>
       </div>
     </el-row>
@@ -49,6 +51,7 @@
           @select="formSelect"
           @selectArea="formSelectArea"
           @consignPicker="consignPicker"
+          :value.sync="saveData.consignee[item.name]"
         ></form-item>
       </div>
     </el-row>
@@ -124,6 +127,7 @@
           v-bind:config="item"
           @input="formInput"
           @select="formSelect"
+          :value.sync="saveData.freightIn[item.name]"
         ></form-item>
       </div>
     </el-row>
@@ -142,6 +146,7 @@
           v-bind:config="item"
           @input="formInput"
           @select="formSelect"
+          :value.sync="saveData.carrier[item.name]"
         ></form-item>
       </div>
     </el-row>
@@ -160,6 +165,7 @@
           v-bind:config="item"
           @input="formInput"
           @select="formSelect"
+          :value.sync="saveData.payee[item.name]"
         ></form-item>
       </div>
     </el-row>
@@ -169,8 +175,8 @@
       <div class="line" style="width: 30px"></div>
     </div>
     <span slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="submitDialog">确 定</el-button>
-      <el-button @click="closeDialog">取 消</el-button>
+      <el-button type="primary" @click="submitDialog" size="mini">确 定</el-button>
+      <el-button @click="closeDialog" size="mini">取 消</el-button>
     </span>
     <el-row
       v-for="(row, Index) in others"
@@ -182,6 +188,7 @@
           v-bind:config="item"
           @input="formInput"
           @select="formSelect"
+          :value.sync="saveData.others[item.name]"
         ></form-item>
       </div>
     </el-row>
@@ -332,7 +339,7 @@ const deliveryType = [
   { label: "送货", value: "送货" },
 ];
 import formItem from "../common/dialogForm.vue";
-import { fetchList } from "@/api/pagesApi/openBilling.js"
+import { fetchList } from "@/api/pagesApi/openBilling.js";
 export default {
   props: {
     visible: {
@@ -368,8 +375,8 @@ export default {
         consignee: {},
         carrier: {},
         freightIn: {
-          freightInAmount: "rer",
-          serviceFee: "rer",
+          freightInAmount: "",
+          serviceFee: "",
         },
         payee: {},
         others: {},
@@ -638,14 +645,14 @@ export default {
           {
             level: "carrier",
             type: "input",
-            name: "carrierName",
+            name: "driverFeePayeeName",
             title: "承运人",
             span: 8,
           },
           {
             level: "carrier",
             type: "input",
-            name: "carrierPhone",
+            name: "driverFeePayeePhoneNumber",
             title: "承运人电话",
             span: 8,
           },
@@ -740,6 +747,12 @@ export default {
     };
   },
   methods: {
+    updateOrder(e){
+      console.log(744)
+      console.log(e)
+      
+    },
+
     tableInput(val, scope) {
       console.log(this.cargoList);
     },
@@ -757,16 +770,17 @@ export default {
       this.setVisible = false;
     },
     submitDialog() {
-      let [consignerProvince,consignerCity,consignerDistrict] = [...this.saveData.consigner.district]
-      let [consigneeProvince,consigneeCity,consigneeDistrict] = [...this.saveData.consignee.district]
-      var obj = {
-        order: {consignerProvince,consignerCity,consignerDistrict,consigneeProvince,consigneeCity,consigneeDistrict,...this.saveData.openBillInfomation, ...this.saveData.consigner, ...this.saveData.consignee, ...this.saveData.carrier, ...this.saveData.freightIn, ...this.saveData.payee, ...this.saveData.others},
-        cargoes: this.cargoList
-      }
-      console.log(obj)
-      fetchList('order/createOrder', 'post', '', obj).then(res => {
-        console.log(res)
-      })
+      // let [consignerProvince,consignerCity,consignerDistrict] = [...this.saveData.consigner.district]
+      // let [consigneeProvince,consigneeCity,consigneeDistrict] = [...this.saveData.consignee.district]
+      // var obj = {
+      //   order: {consignerProvince,consignerCity,consignerDistrict,consigneeProvince,consigneeCity,consigneeDistrict,...this.saveData.openBillInfomation, 
+      //   ...this.saveData.consigner, ...this.saveData.consignee, ...this.saveData.carrier, ...this.saveData.freightIn, ...this.saveData.payee, ...this.saveData.others},
+      //   cargoes: this.cargoList
+      // }
+      console.log(this.saveData)
+      // fetchList('order/create', 'post', '', obj).then(res => {
+      //   console.log(res)
+      // })
     },
     formInput(config, val) {
       this.saveData[config.level][config.name] = val;
@@ -779,7 +793,6 @@ export default {
     },
     consignPicker(config,val){
       this.saveData[config.level][config.name] = val;
-      console.log(config,val)
     },  
     optionSet(){
       var options = {
@@ -807,6 +820,9 @@ export default {
         console.log(this.carrier[0][1])
       })
     },
+  },
+  mounted(){
+    console.log(this.saveData)
   },
   created() {
     this.optionSet()

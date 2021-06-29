@@ -3,10 +3,6 @@
   .el-dialog__header {
     border-bottom: #f2f2f2 solid 1px;
   }
-  .cell {
-    color: #333;
-    font-weight: 500;
-  }
   .dialog {
     .el-dialog__body {
       padding: 0px 40px 20px 0;
@@ -32,10 +28,6 @@
 .runBilling {
   label.el-form-item__label {
     width: 90px;
-  }
-  .cell {
-    color: #333;
-    font-weight: 500;
   }
 }
 .searchForm {
@@ -63,4 +55,73 @@
   border-radius: 5px;
   background: rgba(0, 0, 0, 0.05);
   transition: color 0.2s ease;
+}
+
+element.style {
+  cursor: pointer;
+}
+
+.el-table th {
+  white-space: nowrap;
+  overflow: hidden;
+  -moz-user-select: none;
+  user-select: none;
+}
+.el-table--mini td, .el-table--mini th {
+  padding: 6px 0;
+}
+.el-table td, .el-table th {
+  padding: 12px 0;
+  font-weight: 400;
+  min-width: 0;
+  box-sizing: border-box;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  position: relative;
+  text-align: left;
+}
+
+.el-table__header th{
+  background: #f9f9f9!important;
+  font-weight: 400;
+  color: #444;
+}
+// 角色职责
+.roleDuty {
+  .el-dialog__header {
+    border-bottom: #f2f2f2 solid 1px;
+  }
+  .dialog {
+    .el-dialog__body {
+      padding: 0px 40px 20px 0;
+    }
+    .el-date-editor.el-input,
+    .el-date-editor.el-input__inner {
+      width: 330px;
+    }
+    .el-select {
+      width: 330px;
+    }
+    label {
+      font-weight: 500;
+    }
+  }
+  .cargo_list {
+    .el-select {
+      width: 150px;
+    }
+  }
+}
+
+.dialog {
+  .el-dialog__body {
+    padding: 0px 40px 20px 0;
+  }
+  .el-date-editor.el-input,
+  .el-date-editor.el-input__inner {
+    width: 330px;
+  }
+  .el-select {
+    width: 330px;
+  }
 }

@@ -60,11 +60,13 @@
       >
       </el-pagination>
     </div>
+    <!-- 导入 -->
     <div class="dialog">
-      <orderSync
-        ref="orderSync"
-        :visible.sync="dialog.visible"
-        :title.sync="dialog.title"
+      <excelImport
+        ref="importDialog"
+        :type="type"
+        :visible.sync="importDialog.visible"
+        :title.sync="importDialog.title"
       />
     </div>
   </div>
@@ -72,50 +74,41 @@
 <script>
 import runBillingSearchForm from "@/views/pages/components/common/searchForm.vue";
 import { fetchList } from "@/api/pagesApi/openBilling.js";
-import orderSync from "@/views/pages/components/runBilling/orderSync.vue";
+
 export default {
   name: "runBilling",
   components: {
-    runBillingSearchForm,
-    orderSync
+    runBillingSearchForm
   },
   data() {
     return {
+      type: 'customer',
       searchForm: [
-        { 
-          title: "查询日期", 
-          type: "daterange",
-          name: "rangeDate",
+        {
+          title: "客户名称",
+          type: "input",
+          name: "name",
         },
         {
-          title: "发货方姓名",
+          title: "手机号码",
           type: "input",
-          name: "consignerName",
-        },
-        {
-          title: "收货方姓名",
-          type: "input",
-          name: "consigneeName",
+          name: "phoneNumber",
         },
       ],
       search: {},
       tableBtn: [
-        { icon: "refresh", event: "orderSync", title: "同步", type: "primary" },
-        { icon: "document", event: "table", title: "表格", type: "primary" },
+        { icon: "document-delete", event: "deleted", title: "删除", type: "danger" },
       ],
       tableColumn: [
-        { label: "开单时间", prop: "openTime", width: 250 },
-        { label: "提货时间", prop: "deliveryTime", width: 180 },
-        { label: "预计到达时间", prop: "appointArriveTime", width: 180 },
-        { label: "客户单号", prop: "number", width: 180 },
-        { label: "业务类型", prop: "businessType", width: 180 },
-        { label: "发货方姓名", prop: "consignerName", width: 180 },
-        { label: "发货方电话", prop: "consignerPhone", width: 180 },
-        { label: "发货方证件号码", prop: "consignerIdNO", width: 180 },
-        { label: "发货方详细地址", prop: "consignerAddress", width: 180 },
-        { label: "收货方姓名", prop: "consigneeName", width: 180 },
-        { label: "收货方证件号码", prop: "consigneeIdNO", width: 180 },
-        { label: "收货方详细地址", prop: "consigneeAddress", width: 180 },
+        { label: "ID", prop: "id", width: 60 },
+        { label: "客户名称", prop: "name", width: 260 },
+        { label: "手机号码", prop: "phoneNumber", width: 180 },
+        { label: "联系人", prop: "contact", width: 90 },
+        { label: "法人", prop: "legalPerson", width: 80 },
+        { label: "证件号码", prop: "identityNumber", width: 180 },
+        { label: "省市区", prop: "provinceCity", width: 200 },
+        { label: "地址", prop: "address", width: 300 },
+        { label: "备注", prop: "remark", width: 180 },
       ],
       tableData: [],
       tableList: [],
@@ -124,53 +117,86 @@ export default {
         pageTotal: 50,
         currentPage: 1,
       },
-      dialog: {
-        title: "同步",
-        visible: false,
-      },
+      sql: '',
+      importDialog: {
+        title: '客户信息导入',
+        visible: false
+      }
     };
   },
   methods: {
     setSearch(val) {
+      this.sql = ''
+      console.log(val)
+      if(val!=undefined){
+        this.handleConditions(val)
+      }
+      console.log(this.sql)
       var obj = {
-        conditions: JSON.stringify(val),
+        conditions: this.sql,
         page: this.page.currentPage,
         size: this.page.pageSize,
       }
-      fetchList('/order/query', 'post', null, obj).then(res=>{
+      fetchList('/query/erpCustomer', 'post', null, obj).then(res=>{
         if(res.result) { 
-          this.tableData = res.data.list
-          this.page.pageTotal = res.data.total
+          this.tableData = res.data
+          this.page.pageTotal = res.map.total
         }
       })
     },
     buttonClick(name) {
       this[name]();
     },
-    orderSync() {
-      console.log(137);
-      this.dialog.visible = true
-      // const obj = {
-
-      // }
-      // fetchList('/order/sync', '', null, obj).then(res=>{
-      //   if(res.result) { 
-      //     this.tableData = res.data.list
-      //     this.page.pageTotal = res.data.total
-      //   }
-      // })
-    },
     table() {
       console.log("table");
     },
     handleSizeChange(size) {
-      console.log(size);
+      this.page.pageSize = size
+      this.setSearch()
     },
     handleCurrentChange(currentPage) {
-      console.log(currentPage);
+      this.page.currentPage = currentPage
+      this.setSearch()
     },
     selectTableList(list) {
       this.tableList = list;
+    },
+
+    handleConditions(val) {
+      for(let i in val) {
+        this.searchForm.forEach(item =>{
+          if(item.name==[i]) {
+            if(item.type=='input') {
+              if(val[i]!=undefined) {
+                this.sql += " and " + [i] + " like '%" + val[i] + "%'"
+              }
+            }
+          }
+        })
+      }
+    },
+    deleted() {
+      if(this.tableList.length<1) {
+        alert('请选择要删除的记录')
+        return
+      }
+      let ids = ''
+      for (let i = 0, len = this.tableList.length; i < len; i++) {
+        ids += ids ? ',' + this.tableList[i]['id'] : this.tableList[i]['id']
+      }
+      let params = {
+        type: this.type,
+        id: ids
+      }
+      fetchList('index/delete', 'get', params).then(res=>{
+        if(res.result) { 
+          this.search()
+        }
+      })
+    },
+    excelImportData(){
+      this.$refs['importDialog'].typeTarget()
+      this.importDialog.visible = true
     },
   },
   mounted() {

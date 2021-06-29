@@ -3,7 +3,7 @@
     <el-col :span="config.span" v-if="config.type == 'input'">
       <label class="f-ac-end">
         {{ config.title }}：<el-input 
-          v-model="value"
+          v-model="setvalue"
           :placeholder="'请输入' + config.title"
           size="mini"
           clearable
@@ -18,7 +18,7 @@
         <el-date-picker
            clearable
           @change="select"
-          v-model="value"
+          v-model="setvalue"
           value-format="yyyy-MM-dd HH:mm:ss"
           type="datetime"
           placeholder="选择日期"
@@ -31,7 +31,7 @@
         {{ config.title }}：
         <el-select
           clearable
-          v-model="value"
+          v-model="setvalue"
           placeholder="请选择"
           size="mini"
           @change="select"
@@ -54,7 +54,7 @@
           style="width: 220px;"
           size="mini"
           :options="regionData"
-          v-model="value"
+          v-model="setvalue"
           :props="{value:'label'}"
           @change="selectArea"
         >
@@ -73,12 +73,24 @@ export default {
       type: Object,
       default: {},
     },
+    value:{
+    },
   },
-
+  computed:{
+    setvalue:{
+      get(){
+        return this.value;
+      },
+      set(val){
+        console.log(val)
+        this.$emit("update:value", val);
+      }
+    },
+  },
   data() {
     return {
       regionData: regionData,
-      value: "",
+     
     };
   },
   methods: {

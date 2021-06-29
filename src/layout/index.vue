@@ -38,7 +38,7 @@ export default {
       device: state => state.app.device,
       showSettings: state => state.settings.showSettings,
       needTagsView: state => state.settings.tagsView,
-      fixedHeader: state => state.settings.fixedHeader
+      fixedHeader: state => state.settings.fixedHeader,
     }),
     classObj() {
       return {
@@ -50,13 +50,12 @@ export default {
     }
   },
   methods: {
-    handleClickOutside() {
+    handleClickOutside(){
       this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
     }
   }
 }
 </script>
-
 <style lang="scss" scoped>
   @import "~@/styles/mixin.scss";
   @import "~@/styles/variables.scss";

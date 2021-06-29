@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie'
 
-const TokenKey = 'Admin-Token'
+const TokenKey = 'token'
 const UserInfo = 'UserInfo'
 
 export function getToken() {
@@ -14,6 +14,7 @@ export function setToken(token) {
 export function removeToken() {
   return Cookies.remove(TokenKey)
 }
+
 export function getUserInfo() {
   return Cookies.get(UserInfo)
 }

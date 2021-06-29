@@ -49,6 +49,45 @@ export const constantRoutes = [
 
 export const asyncRoutes = [
   {
+    name: 'system',
+    path: '/system',
+    component: Layout,
+    alwaysShow: true,
+    meta: {
+      title: '系统配置',
+      icon: 'el-icon-s-platform'
+    },
+    children: [
+      { 
+        path: 'usermanage',
+        component: () => import('@/views/pages/system/userManage.vue'),
+        name: 'userManage',
+        meta: {
+          title: '用户管理',
+          noCache: false
+        }
+      },
+      {
+        path: 'roleduty',
+        component: () => import('@/views/pages/system/roleDuty.vue'),
+        name: 'roleDuty', 
+        meta: {
+          title: '角色职责',
+          noCache: false
+        }
+      },
+      {
+        path: 'parameterConfigure',
+        component: () => import('@/views/pages/system/parameterConfigure.vue'),
+        name: 'parameterConfigure', 
+        meta: {
+          title: '参数配置',
+          noCache: false
+        }
+      }
+    ]
+  },
+  {
     name: 'billList',
     path: '/openBilling',
     component: Layout,
@@ -59,7 +98,7 @@ export const asyncRoutes = [
     },
     children: [
       { 
-        path: '/',
+        path: '',
         component: () => import('@/views/pages/openBilling.vue'),
         name: 'openBilling',
         meta: {
@@ -75,9 +114,46 @@ export const asyncRoutes = [
           title: '运单同步',
           noCache: false
         }
-      }
+      },
+      {
+        path: 'driver',
+        component: () => import('@/views/pages/order/driver.vue'),
+        name: 'driver', 
+        meta: {
+          title: '司机管理',
+          noCache: false
+        }
+      },
+      {
+        path: 'customer',
+        component: () => import('@/views/pages/order/customer.vue'),
+        name: 'customer', 
+        meta: {
+          title: '客户管理',
+          noCache: false
+        }
+      },
+      {
+        path: 'addressDuration',
+        component: () => import('@/views/pages/order/addressDuration.vue'),
+        name: 'addressDuration', 
+        meta: {
+          title: '地址间距时长',
+          noCache: false
+        }
+      },
+      {
+        path: 'sigleModel',
+        component: () => import('@/views/pages/order/sigleModel.vue'),
+        name: 'sigleModel', 
+        meta: {
+          title: '单品管理',
+          noCache: false
+        }
+      },
     ]
-  }
+  },
+  
 ]
 
 const createRouter = () => new Router({
@@ -90,6 +166,5 @@ export function resetRouter() {
   const newRouter = createRouter()
   router.matcher = newRouter.matcher
 }
-
 
 export default router

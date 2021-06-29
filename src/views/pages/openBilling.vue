@@ -40,9 +40,9 @@
           align="center"
           :width="item.width"
           sortable
-        >
-        </el-table-column>
-        <el-table-column  label="操作" width="180" align="center" fixed="right">
+        > 
+        </el-table-column> 
+        <el-table-column  label="操作" width="180" align="center" fixed="right"> 
           <template slot-scope="scope">
             <el-button
               @click="handleEdit(scope.row)"
@@ -79,8 +79,17 @@
     <!-- 弹框 -->
     <div class="dialog">
       <open-billing-dialog
+        ref="billingDialog"
         :visible.sync="dialog.visible"
         :title.sync="dialog.title"
+      />
+    </div>
+    <!-- 导入 -->
+    <div class="dialog">
+      <excelImport
+        ref="importDialog"
+        :visible.sync="importDialog.visible"
+        :title.sync="importDialog.title"
       />
     </div>
   </div>
@@ -88,10 +97,15 @@
 <script>
 import openBillingDialog from "@/views/pages/components/openBilling/dialog.vue";
 import openBillingSearchForm from "@/views/pages/components/common/searchForm.vue";
-import { fetchList } from "@/api/pagesApi/openBilling.js"
+import excelImport from "@/views/pages/components/common/ExcelImport.vue";
+import { fetchList } from "@/api/pagesApi/openBilling.js";
 export default {
   name: "openBilling",
-  components: { openBillingDialog, openBillingSearchForm},
+  components: { 
+    openBillingDialog,
+    openBillingSearchForm,
+    excelImport
+  },
   data() {
     return {
       searchForm:[
@@ -118,7 +132,7 @@ export default {
         { icon: "thumb", event: "signOff", title: "签收", type: "primary" },
         {
           icon: "document-delete",
-          event: "add",
+          event: "rex",
           title: "撤销",
           type: "warning",
         },
@@ -128,27 +142,33 @@ export default {
           title: "批量删除",
           type: "danger",
         },
+        {
+          icon: "s-data",
+          event: "excelImportData",
+          title: "Excel导入",
+          type: "primary",
+        },
       ],
       tableColumn: [
-        { label: "开单时间", prop: "openDate", width: 250 },
-        { label: "提货时间", prop: "receiveDate", width: 180 },
-        { label: "预计到达时间", prop: "arriveDate", width: 180 },
+        { label: "开单时间", prop: "openTime", width: 250 },
+        { label: "提货时间", prop: "deliveryTime", width: 180 },
+        { label: "预计到达时间", prop: "appointArriveTime", width: 180 },
         { label: "客户单号", prop: "number", width: 180 },
         { label: "业务类型", prop: "businessType", width: 180 },
-        { label: "发货方姓名", prop: "payerName", width: 180 },
-        { label: "发货方电话", prop: "payerPhone", width: 180 },
-        { label: "发货方证件号码", prop: "payerNum", width: 180 },
-        { label: "地区", prop: "area", width: 180 },
-        { label: "详细地址", prop: "detailAddress", width: 180 },
-        { label: "收货方姓名", prop: "payeeName", width: 180 },
-        { label: "收货方证件号码", prop: "payeeNum", width: 180 },
+        { label: "发货方姓名", prop: "consignerName", width: 180 },
+        { label: "发货方电话", prop: "consignerPhone", width: 180 },
+        { label: "发货方证件号码", prop: "consignerIdNO", width: 180 },
+        { label: "发货方详细地址", prop: "consignerAddress", width: 180 },
+        { label: "收货方姓名", prop: "consigneeName", width: 180 },
+        { label: "收货方证件号码", prop: "consigneeIdNO", width: 180 },
+        { label: "收货方详细地址", prop: "consigneeAddress", width: 180 },
       ],
       tableData: [],
       tableList: [],
       search: {},
       page: {
         pageSize: 20,
-        pageTotal: 50,
+        pageTotal: 1000,
         currentPage: 1,
       },
       data: [],
@@ -156,6 +176,10 @@ export default {
         title: "新增",
         visible: false,
       },
+      importDialog: {
+        title: 'Excel导入',
+        visible: false
+      }
     };
   },
   methods: {
@@ -176,7 +200,7 @@ export default {
       })
     },
     deteleTable() {
-      console.log("delete");
+      console.log("delete table");
     },
     addItem() {
       this.dialog.visible = true
@@ -185,30 +209,42 @@ export default {
       this.tableList = list;
     },
     handleSizeChange(size) {
-      console.log(size);
       this.page.pageSize = size
       this.setSearch()
     },
     handleCurrentChange(currentPage) {
-      console.log(currentPage);
       this.page.currentPage = currentPage
       this.setSearch()
     },
     handleEdit(e) {
-      console.log(e);
+      this.$refs['billingDialog'].updateOrder(e)
+      this.dialog.visible = true
     },
     handleDelete(e, index) {
       console.log(e, index);
+      this.deleteByKey(e.id)
     },
     signOff(){
       console.log('签收')
+      // fetchList('/order/signOff', '', {number: '', signer: ''}).then(res=>{
+      //   console.log(res)
+      // })
+    },
+    deleteByKey(id){
+      // 来个提示框
+      // fetchList('/order/delete', '', e.id).then(res=>{
+      //   console.log(res)
+      // })
+    },
+    excelImportData(){
+      this.importDialog.visible = true
     },
   },
   mounted() {
     this.setSearch()
-    fetchList('/order/customer', '', {msg:'其他'}).then(res=>{
-      console.log(res)
-    })
+    // fetchList('/order/customer', '', {msg:'其他'}).then(res=>{
+    //   console.log(res)
+    // })
   },
 };
 </script>
