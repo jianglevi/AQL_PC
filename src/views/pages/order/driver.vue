@@ -24,13 +24,14 @@
     <!-- 表格 -->
     <div class="table">
       <el-table
+        size="mini"
         class="table_content"
         :data="tableData"
         border
         @select="selectTableList"
         @select-all="selectTableList"
-        :row-style="{ height: '20px' }"
-        :cell-style="{ padding: '5px 0' }"
+        :row-style="{ height: '40px' ,padding:0}"
+        :cell-style="{ padding: '0 0' }"
         height="600"
         style="width: 100%"
         :header-cell-style="{ color: '#333', padding: '5px 0' }"
@@ -53,7 +54,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="page.currentPage"
-        :page-sizes="[10, 20, 50, 100]"
+        :page-sizes="[ 20, 50, 100 ,200]"
         :page-size="page.pageSize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="page.pageTotal"
@@ -67,6 +68,7 @@
         :type="type"
         :visible.sync="importDialog.visible"
         :title.sync="importDialog.title"
+        @search="setSearch"
       />
     </div>
   </div>
@@ -104,8 +106,7 @@ export default {
         { icon: "s-data", event: "excelImportData", title: "导入", type: "primary" },
       ],
       tableColumn: [
-        { label: "ID", prop: "id", width: 60 },
-        { label: "司机姓名", prop: "driverName", width: 180 },
+        { label: "司机姓名", prop: "driverName", width: 120 },
         { label: "手机号", prop: "driverPhone", width: 180 },
         { label: "身份证号", prop: "identityNumber", width: 180 },
         { label: "身份证生效日期", prop: "identityEffectiveDate", width: 180 },
@@ -116,8 +117,8 @@ export default {
         { label: "准驾车型", prop: "driverModel", width: 180 },
         { label: "驾驶证生效日期", prop: "licenseEffectiveDate", width: 180 },
         { label: "驾驶证失效日期", prop: "licenseExpiraDate", width: 180 },
-        { label: "驾驶证发证机关", prop: "licenseIssuing", width: 260 },
-        { label: "身份证住址", prop: "identityAddress", width: 260 },
+        { label: "驾驶证发证机关", prop: "licenseIssuing", width: 300 },
+        { label: "身份证住址", prop: "identityAddress", width: 300 },
         { label: "关联车辆", prop: "associatedVehicle", width: 180 },
         { label: "关联收款人", prop: "relatedPayee", width: 180 },
         { label: "备注", prop: "remark", width: 180 },
@@ -125,8 +126,8 @@ export default {
       tableData: [],
       tableList: [],
       page: {
-        pageSize: 10,
-        pageTotal: 50,
+        pageSize: 20,
+        pageTotal: 0,
         currentPage: 1,
       },
       sql: '',
@@ -139,20 +140,19 @@ export default {
   methods: {
     setSearch(val) {
       this.sql = ''
-      console.log(val)
       if(val!=undefined){
         this.handleConditions(val)
       }
-      console.log(this.sql)
       var obj = {
         conditions: this.sql,
         page: this.page.currentPage,
         size: this.page.pageSize,
       }
       fetchList('/query/erpDriver', 'post', null, obj).then(res=>{
-        if(res.result) { 
+        if(res.result) {
           this.tableData = res.data
           this.page.pageTotal = res.map.total
+          this.tableList = []
         }
       })
     },
@@ -160,7 +160,6 @@ export default {
       this[name]();
     },
     table() {
-      console.log("table");
     },
     handleSizeChange(size) {
       this.page.pageSize = size
@@ -171,9 +170,8 @@ export default {
       this.setSearch()
     },
     selectTableList(list) {
-      this.tableList = list;
+      this.tableList = list.map(item=>item.id);
     },
-
     handleConditions(val) {
       for(let i in val) {
         this.searchForm.forEach(item =>{
@@ -188,29 +186,39 @@ export default {
       }
     },
     insert() {
-
     },
     updated() {
-
     },
-    deleted() {
+    deleted(){
+      console.log(this.tableList)
       if(this.tableList.length<1) {
-        alert('请选择要删除的记录')
+        this.$message({
+          message: '请选择要删除的记录',
+          type: 'warning'
+        });
         return
       }
-      let ids = ''
-      for (let i = 0, len = this.tableList.length; i < len; i++) {
-        ids += ids ? ',' + this.tableList[i]['id'] : this.tableList[i]['id']
-      }
+      this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }).then(() => {
+  
       let params = {
         type: this.type,
-        id: ids
+        id: this.tableList.join(',')
       }
       fetchList('index/delete', 'get', params).then(res=>{
-        if(res.result) { 
-          this.search()
+        if(res.result){
+        this.$message({
+                type: 'success',
+                message: '删除成功!'
+          });
+          this.setSearch()
         }
       })
+      })
+  
     },
     excelImportData(){
       this.$refs['importDialog'].typeTarget()

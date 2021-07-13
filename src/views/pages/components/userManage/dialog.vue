@@ -7,7 +7,7 @@
     :close-on-click-modal="false"
   >
     <el-row
-      v-for="(row, Index) in foirmFields"
+      v-for="(row, Index) in formFields"
       :key="Index + 'row1'"
       style="padding-top: 16px"
     >
@@ -31,6 +31,7 @@ const roleStatus = [
   {label:'开启',value:1},
   {label:'禁用',value:0},
 ]
+let roleSelectList = []
 const api = {
   add:{
     url:"index/insert",
@@ -74,6 +75,7 @@ export default {
         if(newVal){
           if(this.typeConfig.id){
             this.saveData = {...this.typeConfig}
+            this.saveData.password = ""
           }else{
             this.saveData = {}
           }
@@ -86,7 +88,7 @@ export default {
   data() {
     return {
       // 同步
-      foirmFields: [
+      formFields: [
           [
             { title: "用户名", name: "username",type: "input",span:12,width:"330px"},
             { title: "昵称", name: "nickname",type: "input",span:12,width:"330px"},
@@ -100,7 +102,12 @@ export default {
             { title: "一指通用户名", name: "yztUsername",type: "input",span:12,width:"330px"},
           ],
           [
+            { title: "一指通密码", name: "yztPassword",type: "input",span:12,width:"330px"},
             { title: "状态", name: "available",range: roleStatus, type: "picker_same",span:12 },
+          ],
+          [
+            { title: "角色名", name: "roles",range: roleSelectList, type: "picker_same",span:12,multiple:true},
+            { title: "用户名密码", name: "password",type: "input",span:12,width:"330px",password:true},
           ]
       ],
       saveData:{},
@@ -113,7 +120,8 @@ export default {
     submitDialog() {
       let data = {
         user: this.saveData,
-        type: 'user'
+        type: 'user',
+        list: this.saveData.roles
       }
       apiRequest(this.saveData.id ? api.edit.url : api.add.url, '',"post", data).then(res => {
         if(res.result) {
@@ -124,7 +132,10 @@ export default {
     },
   },
   created() {
-  },
+    apiRequest('query/roleSelect').then(res => {
+       roleSelectList = res.data
+      })
+    }
 };
 </script>
 <style scoped lang="scss">

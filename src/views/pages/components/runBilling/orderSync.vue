@@ -7,7 +7,7 @@
     :close-on-click-modal="false"
   >
     <el-row
-      v-for="(item, Index) in foirmFields"
+      v-for="(item, Index) in formFields"
       :key="Index + 'row1'"
       style="padding-top: 16px"
     >
@@ -16,6 +16,7 @@
         @input="formInput"
         @select="formSelect"
         @consignPicker="consignPicker"
+        :value.sync="item[item.name]"
       ></form-item>
     </el-row>
     <span slot="footer" class="dialog-footer">
@@ -55,32 +56,32 @@ export default {
   data() {
     return {
       // 同步
-      foirmFields: [
+      formFields: [
           {
             type: "picker_same",
             name: "consignerName",
             title: "发货方姓名",
             event: "consignPicker",
-            span: 15,
+            span: 21,
           },
           {
             type: "picker_same",
             name: "consigneeName",
             title: "收货方姓名",
             event: "consignPicker",
-            span: 15,
+            span: 21,
           },
           {
             type: "datetimes",
             name: "beginDate",
             title: "开始时间",
-            span: 15,
+            span: 21,
           },
           {
             type: "datetimes",
             name: "endDate",
             title: "结束时间",
-            span: 15,
+            span: 21,
           }
       ],
       saveData:{},
@@ -111,21 +112,12 @@ export default {
       this.saveData[config.name] = val;
     },  
     optionSet(){
-      var options = {
-        ee: {value: 'name', label: 'name', table: 'erp_customer'},
-        er: {value: 'name', label: 'name', table: 'erp_customer'},
-      }
-      fetchList('order/options', 'get', options.ee).then(res => {
+      var options = {value: 'name', label: 'name', table: 'erp_customer'}
+      fetchList('order/options', 'get', options).then(res => {
         if(res.result) {
-          this.foirmFields[0].range = res.data
+          this.formFields[0].range = res.data
+          this.formFields[1].range = res.data
         }
-
-      })
-      fetchList('order/options', 'get', options.er).then(res => {
-        if(res.result) {
-          this.foirmFields[1].range = res.data
-        }
-    
       })
     },
   },

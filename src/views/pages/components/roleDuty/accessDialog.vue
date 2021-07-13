@@ -44,7 +44,7 @@ export default {
         if(newVal){
           apiRequest("query/resourceOfRole",{role:this.typeConfig.id}).then(res => {
             if(res.result) {
-              this.idList = res.data
+              this.idList = res.data.filter(item=> !this.detachId.includes(item))
             }
           })
         }
@@ -58,7 +58,7 @@ export default {
         //回调函数 当需要读取当前属性值是执行，根据相关数据计算并返回当前属性的值
         return this.visible;
       },
-      set(val) {
+      set(val) { 
         //监视当前属性值的变化，当属性值发生变化时执行，更新相关的属性数据
         //val就是fullName3的最新属性值
         this.$emit("update:visible", val);
@@ -73,7 +73,8 @@ export default {
       },
       accessList:[],
       saveData:{},
-      idList:[]
+      idList:[],
+      detachId:[]
     };
   },
   methods: {
@@ -82,7 +83,7 @@ export default {
       this.$refs.tree.setCheckedKeys([])
     },
     submitDialog() {
-      let idList = this.$refs.tree.getCheckedNodes().map(item=>item.id)
+      let idList = this.$refs.tree.getCheckedKeys()
       let data = {
         resources: idList,
         role: this.typeConfig.id
@@ -94,9 +95,10 @@ export default {
       })
     },
   },
-  created() {
+  created(){
     apiRequest("query/sysResource").then(res=>{
         this.accessList = res.data
+        this.detachId = res.data.map(item=>item.id)
     })
   },
 };

@@ -49,10 +49,13 @@ router.beforeEach(async(to, from, next) => {
                 router.addRoutes(accessRouter);
               })
               sendMessage("登录成功");
+              next({ ...to, replace: true })
             } else {
+              store.dispatch('user/resetToken')
               sendMessage(res.msg, "error");
+              next('/login')
             }
-            next({ ...to, replace: true })
+        
           });
         } catch (error) {
           // remove token and go to login page to re-login

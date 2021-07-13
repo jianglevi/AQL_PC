@@ -7,7 +7,7 @@
     :close-on-click-modal="false"
   >
     <el-row
-      v-for="(item, Index) in foirmFields"
+      v-for="(item, Index) in formFields"
       :key="Index + 'row1'"
       style="padding-top: 16px"
     >
@@ -84,7 +84,7 @@ export default {
   data() {
     return {
       // 同步
-      foirmFields: [
+      formFields: [
           {
             type: "input",
             name: "name",

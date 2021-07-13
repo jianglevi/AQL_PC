@@ -17,11 +17,12 @@
     <!-- 表格 -->
     <div class="table">
       <el-table
+        size="mini"
         :data="tableData"
         border
         style="width:60%"
-        :row-style="{ height: '20px' }"
-        :cell-style="{ padding: '5px 0' }"
+        :row-style="{ height: '40px' }"
+        :cell-style="{ padding: '0' }"
         height="600"
         :header-cell-style="{ color: '#333', padding: '5px 0' }"
       >
@@ -48,7 +49,7 @@
             <el-button
               size="mini"
               type="danger"
-              icon="el-icon-delete"
+              icon="el-icon-document-delete"
               plain
               @click="handleDelete(scope.row, scope.$index)"
               >删除</el-button
@@ -114,7 +115,7 @@ export default {
       },
       accessDialog:{
         title: "权限",
-        visible: false
+        visible: false,
       },
       typeConfig:{},
       search: {},
@@ -155,9 +156,15 @@ export default {
       this.typeConfig = row
     },
     handleDelete(row){
-      let data = {id:row.id,type:'role'}
-      apiRequest('index/delete', data).then(res => {
-        this.setSearch()
+      this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+      }).then(() => {
+        let data = {id:row.id,type:'role'}
+        apiRequest('index/delete', data).then(res => {
+          this.setSearch()
+        })
       })
     },
     handleAccess(row){
@@ -171,7 +178,11 @@ export default {
       this.page.currentPage = currentPage
     },
     setSearch(){
-      apiRequest('query/sysRole',{page:this.page.currentPage,msg:{},size:this.page.pageSize}).then(res=>{
+      // apiRequest('query/sysRole',{page:this.page.currentPage,msg:{},size:this.page.pageSize}).then(res=>{
+      //   this.tableData = res.data
+      //   this.page.pageTotal = res.map.total
+      // })
+      apiRequest('query/roles','','post',{page:this.page.currentPage,size:this.page.pageSize}).then(res=>{
         this.tableData = res.data
         this.page.pageTotal = res.map.total
       })

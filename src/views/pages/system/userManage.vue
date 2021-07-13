@@ -17,11 +17,12 @@
     <!-- 表格 -->
     <div class="table">
       <el-table
+        size="mini"
         :data="tableData"
         border
         style="width:100%"
-        :row-style="{ height: '20px' }"
-        :cell-style="{ padding: '5px 0' }"
+        :row-style="{ height: '40px' }"
+        :cell-style="{ padding: '0' }"
         height="600"
         :header-cell-style="{ color: '#333', padding: '5px 0' }"
       >
@@ -34,7 +35,7 @@
           sortable
         >
         </el-table-column>
-        <el-table-column  label="操作" width="200" align="center"> 
+        <el-table-column  label="操作" width="200" align="center">
           <template slot-scope="scope">
             <el-button
               @click="handleEdit(scope.row)"
@@ -47,7 +48,7 @@
             <el-button
               size="mini"
               type="danger"
-              icon="el-icon-delete"
+              icon="el-icon-document-delete"
               plain
               @click="handleDelete(scope.row, scope.$index)"
               >删除</el-button
@@ -61,7 +62,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="page.currentPage"
-        :page-sizes="[10, 20, 50, 100]"
+        :page-sizes="[20, 50, 100,200]"
         :page-size="page.pageSize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="page.pageTotal"
@@ -102,6 +103,7 @@ export default {
         { label: "状态", prop: "available" },
         { label: "一指通路径", prop: "yztUrl" },
         { label: "一指通用户名", prop: "yztUsername" },
+        { label: "一指通密码", prop: "yztPassword" },
         { label: "客户", prop: "organizationName" },
       ],
       tableData: [],
@@ -132,9 +134,15 @@ export default {
       this.typeConfig = row
     },
     handleDelete(row){
-      let data = {id:row.id,type:'user'}
-      apiRequest('index/delete', data).then(res => {
-        this.setSearch()
+      this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+          let data = {id:row.id,type:'user'}
+          apiRequest('index/delete', data).then(res => {
+            this.setSearch()
+          })
       })
     },
     handleSizeChange(size) {
@@ -144,7 +152,7 @@ export default {
       this.page.currentPage = currentPage
     },
     setSearch(){
-      apiRequest('query/sysUser',{page:this.page.currentPage,msg:{},size:this.page.pageSize}).then(res=>{
+      apiRequest('query/users','','post',{page:this.page.currentPage,size:this.page.pageSize}).then(res=>{
         this.tableData = res.data
         this.page.pageTotal = res.map.total
       })

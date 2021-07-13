@@ -87,10 +87,10 @@ export default {
         minMatchCharLength: 1,
         keys: [{
           name: 'title',
-          weight: 0.7
+          weight: 0.7,
         }, {
           name: 'path',
-          weight: 0.3
+          weight: 0.3,
         }]
       })
     },
@@ -98,26 +98,21 @@ export default {
     // And generate the internationalized title
     generateRoutes(routes, basePath = '/', prefixTitle = []) {
       let res = []
-
-      for (const router of routes) {
-        // skip hidden router
-        if (router.hidden) { continue }
-
+      for (const router of routes) { 
+        // skip hidden routes
+        if (router.hidden) { continue } 
         const data = {
           path: path.resolve(basePath, router.path),
           title: [...prefixTitle]
         }
-
         if (router.meta && router.meta.title) {
           data.title = [...data.title, router.meta.title]
-
           if (router.redirect !== 'noRedirect') {
             // only push the routes with title
             // special case: need to exclude parent router without redirect
             res.push(data)
           }
         }
-
         // recursive child routes
         if (router.children) {
           const tempRoutes = this.generateRoutes(router.children, data.path, data.title)

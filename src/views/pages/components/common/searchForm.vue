@@ -7,7 +7,7 @@
         :key="item.title"
         v-if="item.type == 'input'"
       >
-        <el-input v-model="searchData[item.name]" size="mini" clearable></el-input>
+        <el-input v-model="searchData[item.name]" size="mini" clearable @input="onInput"></el-input>
       </el-form-item>
       <el-form-item
         :label="item.title + ':'"
@@ -42,7 +42,6 @@
     </el-form-item>
   </el-form>
 </template>
-
 <script>
 export default {
   props:{
@@ -59,6 +58,13 @@ export default {
     }
   },
   methods:{
+   onChange(){
+     this.$forceUpdate();
+   },
+   onInput(){
+     this.$forceUpdate();
+   },
+  
    submitForm(name) {
       this.$emit('setSearchForm',this[name])
     },

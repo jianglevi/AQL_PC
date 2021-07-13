@@ -158,8 +158,6 @@ export default {
   },
   methods: {
     fileChange(file, fileList) {
-      console.log(file)
-      console.log(fileList)
       this.file = file
       this.fileName = file.name
       if(fileList.length>0) {
@@ -170,9 +168,6 @@ export default {
       data.append('multipartFile', file.raw)
       postRequest('import/dataSources', data, {'Content-Type': 'multipart/form-data'}).then(res => {
         if(res.result) {
-          console.log(173)
-          console.log(res.data)
-          console.log(this.type)
           this.tableData[0].data = res.data[0]
           // this.tableOptions()
         }
@@ -223,14 +218,19 @@ export default {
           fieldRow: this.fieldRow,
           fstDataRow: this.fstDataRow,
           endDataRow: this.endDataRow,
-          type: this.tableData[0].target
+          type: this.type
         }
         data.append('msg', JSON.stringify(msg))
         data.append('multipartFile', this.file.raw)
         postRequest('import/excel', data, {'Content-Type': 'multipart/form-data'}).then(res => {
           if(res.result) {
             console.log(res.data)
+            this.$message("导入成功")
             this.loading = false
+            this.closeDialog()
+            this.$emit('search')
+          } else {
+            
           }
         })
       })

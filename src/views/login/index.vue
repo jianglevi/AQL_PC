@@ -180,6 +180,7 @@ export default {
             } else {
               sendMessage(res.msg, "error");
             }
+            this.loading = false;
             this.$router.push("/");
           });
           // this.$store

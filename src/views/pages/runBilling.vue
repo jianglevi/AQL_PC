@@ -24,6 +24,7 @@
     <!-- 表格 -->
     <div class="table">
       <el-table
+        size="mini"
         class="table_content"
         :data="tableData"
         border
@@ -53,7 +54,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="page.currentPage"
-        :page-sizes="[10, 20, 50, 100]"
+        :page-sizes="[20, 50, 100, 200]"
         :page-size="page.pageSize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="page.pageTotal"
@@ -61,7 +62,7 @@
       </el-pagination>
     </div>
     <div class="dialog">
-      <orderSync
+      <order-sync
         ref="orderSync"
         :visible.sync="dialog.visible"
         :title.sync="dialog.title"
@@ -82,8 +83,8 @@ export default {
   data() {
     return {
       searchForm: [
-        { 
-          title: "查询日期", 
+        {
+          title: "查询日期",
           type: "daterange",
           name: "rangeDate",
         },
@@ -101,7 +102,7 @@ export default {
       search: {},
       tableBtn: [
         { icon: "refresh", event: "orderSync", title: "同步", type: "primary" },
-        { icon: "document", event: "table", title: "表格", type: "primary" },
+        { icon: "document-delete", event: "delete", title: "删除", type: "danger" },
       ],
       tableColumn: [
         { label: "开单时间", prop: "openTime", width: 250 },
@@ -120,8 +121,8 @@ export default {
       tableData: [],
       tableList: [],
       page: {
-        pageSize: 10,
-        pageTotal: 50,
+        pageSize: 20,
+        pageTotal: 0,
         currentPage: 1,
       },
       dialog: {
@@ -138,7 +139,7 @@ export default {
         size: this.page.pageSize,
       }
       fetchList('/order/query', 'post', null, obj).then(res=>{
-        if(res.result) { 
+        if(res.result) {
           this.tableData = res.data.list
           this.page.pageTotal = res.data.total
         }
@@ -148,10 +149,8 @@ export default {
       this[name]();
     },
     orderSync() {
-      console.log(137);
       this.dialog.visible = true
       // const obj = {
-
       // }
       // fetchList('/order/sync', '', null, obj).then(res=>{
       //   if(res.result) { 
@@ -160,17 +159,36 @@ export default {
       //   }
       // })
     },
-    table() {
-      console.log("table");
+    delete(){
+      this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }).then(() => {
+        this.deleteByKey(this.tableList.join(','))
+      })
+    },
+    deleteByKey(id) {
+      fetchList("/order/delete", "", { id, type: this.type }).then(res => {
+        if (res.result) {
+          this.$message({
+            type: "success",
+            message: "删除成功!"
+          });
+          this.setSearch();
+        }
+      });
     },
     handleSizeChange(size) {
-      console.log(size);
+      this.page.pageSize = size
+      this.setSearch()
     },
     handleCurrentChange(currentPage) {
-      console.log(currentPage);
+      this.page.currentPage = currentPage
+      this.setSearch()
     },
     selectTableList(list) {
-      this.tableList = list;
+      this.tableList = list.map(item=>item.id);
     },
   },
   mounted() {
@@ -179,13 +197,6 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-.search_container label {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  width: 100px;
-}
-
 .el-dialog__header {
   padding: 0px;
   padding-bottom: 10px;

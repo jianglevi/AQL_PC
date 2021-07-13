@@ -9,6 +9,9 @@
           clearable
           :style="{width:config.width ? config.width : '220px'}"
           @input="input"
+          @blur="blur"
+          :show-password="config.password"
+          :disabled="disable"
         ></el-input>
       </label>
     </el-col>
@@ -23,6 +26,7 @@
           type="datetime"
           placeholder="选择日期"
           size="mini"
+          :disabled="disable"
         />
       </label>
     </el-col>
@@ -31,10 +35,12 @@
         {{ config.title }}：
         <el-select
           clearable
+          :multiple="config.multiple"
           v-model="setvalue"
           placeholder="请选择"
           size="mini"
           @change="select"
+          :disabled="disable"
         >
           <el-option
             v-for="item in config.range"
@@ -51,6 +57,7 @@
         {{ config.title }}：
         <el-cascader
           clearable
+          :disabled="disable"
           style="width: 220px;"
           size="mini"
           :options="regionData"
@@ -75,6 +82,10 @@ export default {
     },
     value:{
     },
+    disable:{
+      type:Boolean,
+      default: false,
+    }
   },
   computed:{
     setvalue:{
@@ -96,6 +107,10 @@ export default {
   methods: {
     input(val) {
       let event = this.config.event ? this.config.event : "input";
+      this.$emit(event, this.config, val);
+    },
+    blur(val) {
+      let event = this.config.event ? this.config.event : "blur";
       this.$emit(event, this.config, val);
     },
     select(val) {

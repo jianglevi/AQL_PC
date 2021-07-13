@@ -24,13 +24,14 @@
     <!-- 表格 -->
     <div class="table">
       <el-table
+        size="mini"
         class="table_content"
         :data="tableData"
         border
         @select="selectTableList"
         @select-all="selectTableList"
-        :row-style="{ height: '20px' }"
-        :cell-style="{ padding: '5px 0' }"
+        :row-style="{ height: '40px' ,padding:0}"
+        :cell-style="{ padding: '0 0' }"
         height="600"
         style="width: 100%"
         :header-cell-style="{ color: '#333', padding: '5px 0' }"
@@ -53,7 +54,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="page.currentPage"
-        :page-sizes="[10, 20, 50, 100]"
+        :page-sizes="[ 20, 50, 100, 200]"
         :page-size="page.pageSize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="page.pageTotal"
@@ -67,6 +68,7 @@
         :type="type"
         :visible.sync="importDialog.visible"
         :title.sync="importDialog.title"
+        @search="setSearch"
       />
     </div>
   </div>
@@ -74,11 +76,12 @@
 <script>
 import runBillingSearchForm from "@/views/pages/components/common/searchForm.vue";
 import { fetchList } from "@/api/pagesApi/openBilling.js";
-
+import excelImport from "@/views/pages/components/common/ExcelImport.vue"
 export default {
   name: "runBilling",
   components: {
-    runBillingSearchForm
+    runBillingSearchForm,
+    excelImport
   },
   data() {
     return {
@@ -93,27 +96,27 @@ export default {
       search: {},
       tableBtn: [
         { icon: "document-delete", event: "deleted", title: "删除", type: "danger" },
+        { icon: "s-data", event: "excelImportData", title: "导入", type: "primary" },
       ],
       tableColumn: [
-        { label: "ID", prop: "id", width: 60 },
-        { label: "单品名称", prop: "itemName", width: 180 },
-        { label: "单品重量", prop: "unitWeight", width: 120 },
-        { label: "单品体积", prop: "unitVolume", width: 120 },
-        { label: "单品货值", prop: "unitVolume", width: 120 },
-        { label: "单品类型", prop: "type", width: 120 },
-        { label: "货物备注1", prop: "cargoNote1", width: 120 },
-        { label: "货物备注2", prop: "cargoNote2", width: 120 },
-        { label: "货物备注3", prop: "cargoNote3", width: 120 },
-        { label: "货物备注4", prop: "cargoNote4", width: 120 },
-        { label: "货物备注5", prop: "cargoNote5", width: 120 },
-        { label: "货物备注6", prop: "cargoNote6", width: 120 },
-        { label: "用户", prop: "userName", width: 180 },
+        { label: "单品名称", prop: "itemName" },
+        { label: "单品重量", prop: "unitWeight" },
+        { label: "单品体积", prop: "unitVolume" },
+        { label: "单品货值", prop: "unitValue" },
+        { label: "单品类型", prop: "type" },
+        { label: "货物备注1", prop: "cargoNote1" },
+        { label: "货物备注2", prop: "cargoNote2" },
+        { label: "货物备注3", prop: "cargoNote3" },
+        { label: "货物备注4", prop: "cargoNote4" },
+        { label: "货物备注5", prop: "cargoNote5" },
+        { label: "货物备注6", prop: "cargoNote6" },
+        { label: "用户", prop: "userName" },
       ],
       tableData: [],
       tableList: [],
       page: {
-        pageSize: 10,
-        pageTotal: 50,
+        pageSize: 20,
+        pageTotal: 0,
         currentPage: 1,
       },
       sql: '',
@@ -158,7 +161,7 @@ export default {
       this.setSearch()
     },
     selectTableList(list) {
-      this.tableList = list;
+      this.tableList = list.map(item=>item.id);
     },
 
     handleConditions(val) {
@@ -175,22 +178,31 @@ export default {
       }
     },
     deleted() {
-      if(this.tableList.length<1) {
-        alert('请选择要删除的记录')
+     if(this.tableList.length<1) {
+        this.$message({
+          message: '请选择要删除的记录',
+          type: 'warning'
+        });
         return
       }
-      let ids = ''
-      for (let i = 0, len = this.tableList.length; i < len; i++) {
-        ids += ids ? ',' + this.tableList[i]['id'] : this.tableList[i]['id']
-      }
-      let params = {
-        type: this.type,
-        id: ids
-      }
-      fetchList('index/delete', 'get', params).then(res=>{
-        if(res.result) { 
-          this.search()
+      this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        let params = {
+          type: this.type,
+          id: this.tableList.join(',')
         }
+        fetchList('index/delete', 'get', params).then(res=>{
+        if(res.result) { 
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          });
+          this.setSearch()
+        }
+      })
       })
     },
     excelImportData(){

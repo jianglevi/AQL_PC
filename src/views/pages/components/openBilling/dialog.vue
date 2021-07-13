@@ -17,6 +17,7 @@
           v-bind:config="item"
           @input="formInput"
           @select="formSelect"
+          :disable.sync="disable"
           :value.sync="saveData.openBillInfomation[item.name]"
         ></form-item>
       </div>
@@ -31,9 +32,11 @@
         <form-item
           v-bind:config="item"
           @input="formInput"
+          @blur="formBlur"
           @select="formSelect"
           @selectArea="formSelectArea"
           @consignPicker="consignPicker"
+          :disable.sync="disable"
           :value.sync="saveData.consigner[item.name]"
           ></form-item>
       </div>
@@ -48,9 +51,11 @@
         <form-item
           v-bind:config="item"
           @input="formInput"
+          @blur="formBlur"
           @select="formSelect"
           @selectArea="formSelectArea"
           @consignPicker="consignPicker"
+          :disable.sync="disable"
           :value.sync="saveData.consignee[item.name]"
         ></form-item>
       </div>
@@ -58,7 +63,7 @@
     <!-- 货物信息 -->
     <div class="title">
       <div>货物信息</div>
-      <div class="operation">
+      <div class="operation" v-if="!disable">
         <div @click="addTableRow" class="tag">+添加</div>
         <div @click="deleteTableRow" class="tag">-删除</div>
       </div>
@@ -78,6 +83,7 @@
             <el-input
               size="mini"
               clearable
+              :disabled="disable"
               v-model="scope.row[item.name]"
               @input="tableInput(scope, item)"
               :placeholder="'请输入' + item.title"
@@ -97,6 +103,7 @@
               :placeholder="'请选择' + item.title"
               size="mini"
               clearable
+              :disabled="disable"
               v-model="scope.row[item.name]"
               @change="tableSelect(scope, item)"
             >
@@ -127,6 +134,7 @@
           v-bind:config="item"
           @input="formInput"
           @select="formSelect"
+          :disable.sync="disable"
           :value.sync="saveData.freightIn[item.name]"
         ></form-item>
       </div>
@@ -146,6 +154,7 @@
           v-bind:config="item"
           @input="formInput"
           @select="formSelect"
+          :disable.sync="disable"
           :value.sync="saveData.carrier[item.name]"
         ></form-item>
       </div>
@@ -165,6 +174,7 @@
           v-bind:config="item"
           @input="formInput"
           @select="formSelect"
+          :disable.sync="disable"
           :value.sync="saveData.payee[item.name]"
         ></form-item>
       </div>
@@ -188,6 +198,7 @@
           v-bind:config="item"
           @input="formInput"
           @select="formSelect"
+          :disable.sync="disable"
           :value.sync="saveData.others[item.name]"
         ></form-item>
       </div>
@@ -324,19 +335,19 @@ const initCargo = {
   note2: "",
 };
 const payType = [
-  { label: "现付", value: "现付" },
-  { label: "到付", value: "到付" },
-  { label: "回付", value: "回付" },
-  { label: "周结", value: "周结" },
-  { label: "月结", value: "月结" },
-  { label: "货款扣", value: "货款扣" },
-  { label: "季度结", value: "季度结" },
-  { label: "在线支付", value: "在线支付" },
-  { label: "到付月结", value: "到付月结" },
+  { label: "现付", value: 1 },
+  { label: "到付", value: 2 },
+  { label: "回付", value: 3 },
+  { label: "周结", value: 4 },
+  { label: "月结", value: 5 },
+  { label: "货款扣", value: 6 },
+  { label: "季度结", value: 7 },
+  { label: "在线支付", value: 8 },
+  { label: "到付月结", value: 9 },
 ];
 const deliveryType = [
-  { label: "自提", value: "自提" },
-  { label: "送货", value: "送货" },
+  { label: "自提", value: 1 },
+  { label: "送货", value: 2 },
 ];
 import formItem from "../common/dialogForm.vue";
 import { fetchList } from "@/api/pagesApi/openBilling.js";
@@ -350,6 +361,42 @@ export default {
       type: String,
       default: "",
     },
+    typeConfig:{
+      type:Object
+    }
+  },
+  watch:{
+    visible:{
+      handler(newVal){
+        if(newVal){
+          
+          if(this.title == '详情')this.disable = true
+          else{this.disable = false}
+
+          if(this.typeConfig.id){
+            this.getCargoList(this.typeConfig.id);
+            ['openBillInfomation','consigner','consignee','carrier','freightIn','payee','others'].forEach(name=>{
+              this.formatData(name)
+            })
+            this.saveData.consigner.district = [this.typeConfig.consignerProvince,this.typeConfig.consignerCity,this.typeConfig.consignerDistrict]
+            this.saveData.consignee.district = [this.typeConfig.consigneeProvince,this.typeConfig.consigneeCity,this.typeConfig.consigneeDistrict]
+          }else{
+            this.saveData = {
+                openBillInfomation: {},
+                consigner: {},
+                consignee: {},
+                carrier: {},
+                freightIn: {},
+                payee: {},
+                others: {},
+            }
+            this.saveData.openBillInfomation.openTime = new Date()
+            this.cargoList =  [{ ...initCargo }]
+          }
+        }
+      },
+      immediate:true
+    }
   },
   computed: {
     setVisible: {
@@ -367,19 +414,17 @@ export default {
   components: { formItem },
   data() {
     return {
+      disable:false,
       cargo: cargo,
       cargoList: [{ ...initCargo }],
       saveData: {
-        openBillInfomation: {},
-        consigner: {},
-        consignee: {},
-        carrier: {},
-        freightIn: {
-          freightInAmount: "",
-          serviceFee: "",
-        },
-        payee: {},
-        others: {},
+          openBillInfomation: {},
+          consigner: {},
+          consignee: {},
+          carrier: {},
+          freightIn: {},
+          payee: {},
+          others: {},
       },
       // 收货人
       consignee: [
@@ -645,14 +690,14 @@ export default {
           {
             level: "carrier",
             type: "input",
-            name: "driverFeePayeeName",
+            name: "carrierName",
             title: "承运人",
             span: 8,
           },
           {
             level: "carrier",
             type: "input",
-            name: "driverFeePayeePhoneNumber",
+            name: "carrierPhone",
             title: "承运人电话",
             span: 8,
           },
@@ -674,7 +719,7 @@ export default {
             level: "payee",
             type: "input",
             name: "driverFeePayeeBankName",
-            title: "银行开户名",
+            title: "开户银行",
             span: 8,
           },
           {
@@ -688,7 +733,7 @@ export default {
             level: "payee",
             type: "input",
             name: "driverFeePayeeName",
-            title: "开户银行名",
+            title: "银行开户名",
             span: 8,
           },
         ],
@@ -747,12 +792,14 @@ export default {
     };
   },
   methods: {
-    updateOrder(e){
-      console.log(744)
-      console.log(e)
-      
+    formatData(name){
+      this.saveData[name]= this[name].reduce((pre,row)=>{
+        row.forEach(item=> {
+          pre[item.name] = this.typeConfig[item.name]
+        })
+        return pre
+      },{})
     },
-
     tableInput(val, scope) {
       console.log(this.cargoList);
     },
@@ -770,17 +817,34 @@ export default {
       this.setVisible = false;
     },
     submitDialog() {
-      // let [consignerProvince,consignerCity,consignerDistrict] = [...this.saveData.consigner.district]
-      // let [consigneeProvince,consigneeCity,consigneeDistrict] = [...this.saveData.consignee.district]
-      // var obj = {
-      //   order: {consignerProvince,consignerCity,consignerDistrict,consigneeProvince,consigneeCity,consigneeDistrict,...this.saveData.openBillInfomation, 
-      //   ...this.saveData.consigner, ...this.saveData.consignee, ...this.saveData.carrier, ...this.saveData.freightIn, ...this.saveData.payee, ...this.saveData.others},
-      //   cargoes: this.cargoList
-      // }
-      console.log(this.saveData)
-      // fetchList('order/create', 'post', '', obj).then(res => {
-      //   console.log(res)
-      // })
+      let [consignerProvince,consignerCity,consignerDistrict] = [...this.saveData.consigner.district]
+      let [consigneeProvince,consigneeCity,consigneeDistrict] = [...this.saveData.consignee.district]
+      console.log(this.saveData.consignee.district)
+      console.log(consigneeProvince,consigneeCity,consigneeDistrict)
+      var obj = {
+        order: {...this.saveData.openBillInfomation,
+        ...this.saveData.consigner, ...this.saveData.consignee, ...this.saveData.carrier, ...this.saveData.freightIn, ...this.saveData.payee, ...this.saveData.others,consignerProvince,consignerCity,consignerDistrict,consigneeProvince,consigneeCity,consigneeDistrict},
+        cargoes: this.cargoList
+      }
+      let url ='order/create'
+      if(this.typeConfig.id){
+        url = 'order/update'
+        obj.order.id = this.typeConfig.id
+        obj.order.number = this.typeConfig.number
+      }
+      fetchList(url, 'post', '', obj).then(res => {
+        if(res.result) {
+          this.$message("运单创建成功")
+          this.closeDialog()
+        }else {
+          // 报错提示 res.msg
+        }
+      })
+    },
+    formBlur(config) {
+       if(config.name == 'consignerAddress' || config.name == 'consigneeAddress'){
+         this.setPredictTime()
+       }
     },
     formInput(config, val) {
       this.saveData[config.level][config.name] = val;
@@ -793,14 +857,37 @@ export default {
     },
     consignPicker(config,val){
       this.saveData[config.level][config.name] = val;
-    },  
+      fetchList('order/customer', 'get', {msg:val}).then(val=>{
+        if(val.result){
+          if(config.name == 'consignerName'){
+            let area = val.data[0].provinceCity.match(/.+?(省|市|自治区|自治州|盟|县|区|旗|管委会)/g)
+            this.saveData[config.level].consignerPhone = val.data[0].phoneNumber
+            this.saveData[config.level].consignerIdNO = val.data[0].identityNumber
+            this.saveData[config.level].consignerAddress = val.data[0].address
+            this.saveData[config.level].district = [area[0],area[1],area[2]]
+            this.saveData[config.level].consignerProvince = area[0]
+            this.saveData[config.level].consignerCity = area[1]
+            this.saveData[config.level].consignerDistrict = area[2]
+          }else if(config.name == 'consigneeName'){
+            let area = val.data[0].provinceCity.match(/.+?(省|市|自治区|自治州|盟|县|区|旗|管委会)/g)
+            this.saveData[config.level].consigneePhone = val.data[0].phoneNumber
+            this.saveData[config.level].consigneeIdNO = val.data[0].identityNumber
+            this.saveData[config.level].consigneeAddress = val.data[0].address
+            this.saveData[config.level].district = [area[0],area[1],area[2]]
+            this.saveData[config.level].consigneeProvince = area[0]
+            this.saveData[config.level].consigneeCity = area[1]
+            this.saveData[config.level].consigneeDistrict = area[2]
+          }
+          this.setPredictTime()
+        }
+      })
+    },
     optionSet(){
       var options = {
         ee: {value: 'name', label: 'name', table: 'erp_customer'},
         er: {value: 'name', label: 'name', table: 'erp_customer'},
         driver: {value: 'driverName', label: 'driverName', table: 'erp_driver'}
       }
-      
       fetchList('order/options', 'get', options.ee).then(res => {
         if(res.result) {
           this.consignee[0][0].range = res.data
@@ -811,14 +898,28 @@ export default {
         if(res.result) {
           this.consigner[0][0].range = res.data
         }
-        console.log(this.consigner[0][0])
       })
       fetchList('order/options', 'get', options.driver).then(res => {
         if(res.result) {
           this.carrier[0][1].range = res.data
         }
-        console.log(this.carrier[0][1])
       })
+    },
+    getCargoList(id){
+      fetchList('order/queryCargoes', 'get', {orderId:id}).then(val=>{
+        if(val.result){
+          this.cargoList = val.data
+        }
+      })
+    },
+    async setPredictTime(){
+        if(this.saveData.consigner?.consignerAddress && this.saveData.consignee?.consigneeAddress){
+          const predictTime = await fetchList("orc/arriveDuration",'get',{startAddress:this.saveData.consigner.consignerAddress,endAddress:this.saveData.consignee.consigneeAddress})
+          if(predictTime?.data){
+            let time = new Date(this.saveData.openBillInfomation.openTime).getTime() + predictTime.data*60*1000
+            this.saveData.openBillInfomation.appointArriveTime = new Date(time)
+          }
+       }
     },
   },
   mounted(){

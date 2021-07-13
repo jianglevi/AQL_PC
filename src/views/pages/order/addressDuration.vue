@@ -27,10 +27,11 @@
         class="table_content"
         :data="tableData"
         border
+        size="mini"
         @select="selectTableList"
         @select-all="selectTableList"
-        :row-style="{ height: '20px' }"
-        :cell-style="{ padding: '5px 0' }"
+        :row-style="{ height: '40px' ,padding:0}"
+        :cell-style="{ padding: '0 0' }"
         height="600"
         style="width: 100%"
         :header-cell-style="{ color: '#333', padding: '5px 0' }"
@@ -53,7 +54,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="page.currentPage"
-        :page-sizes="[10, 20, 50, 100]"
+        :page-sizes="[20, 50, 100, 200]"
         :page-size="page.pageSize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="page.pageTotal"
@@ -67,6 +68,7 @@
         :type="type"
         :visible.sync="importDialog.visible"
         :title.sync="importDialog.title"
+        @search="setSearch"
       />
     </div>
   </div>
@@ -98,15 +100,15 @@ export default {
       search: {},
       tableBtn: [
         { icon: "document-delete", event: "deleted", title: "删除", type: "danger" },
+        { icon: "s-data", event: "excelImportData", title: "导入", type: "primary" },
       ],
       tableColumn: [
-        { label: "ID", prop: "id", width: 60 },
-        { label: "起始地址", prop: "startAddress", width: 300 },
-        { label: "结束地址", prop: "endAddress", width: 300 },
-        { label: "预计到达时长", prop: "appointArriveDuration", width: 130 },
-        { label: "备注1", prop: "spare1", width: 120 },
-        { label: "备注2", prop: "spare2", width: 120 },
-        { label: "备注3", prop: "spare3", width: 120 },
+        { label: "起始地址", prop: "startAddress" },
+        { label: "结束地址", prop: "endAddress" },
+        { label: "预计到达时长", prop: "appointArriveDuration"},
+        { label: "备注1", prop: "spare1" },
+        { label: "备注2", prop: "spare2" },
+        { label: "备注3", prop: "spare3"},
       ],
       tableData: [],
       tableList: [],
@@ -136,30 +138,29 @@ export default {
         size: this.page.pageSize,
       }
       fetchList('/query/aqlIntervalTime', 'post', null, obj).then(res=>{
-        if(res.result) { 
+        if(res.result) {
           this.tableData = res.data
           this.page.pageTotal = res.map.total
         }
       })
     },
-    buttonClick(name) {
+    buttonClick(name){
       this[name]();
     },
-    table() {
+    table(){
       console.log("table");
     },
-    handleSizeChange(size) {
+    handleSizeChange(size){
       this.page.pageSize = size
       this.setSearch()
     },
-    handleCurrentChange(currentPage) {
+    handleCurrentChange(currentPage){
       this.page.currentPage = currentPage
       this.setSearch()
     },
     selectTableList(list) {
-      this.tableList = list;
+      this.tableList = list.map(item=>item.id);
     },
-
     handleConditions(val) {
       for(let i in val) {
         this.searchForm.forEach(item =>{
@@ -173,23 +174,32 @@ export default {
         })
       }
     },
-    deleted() {
-      if(this.tableList.length<1) {
-        alert('请选择要删除的记录')
+    deleted(){
+       if(this.tableList.length<1) {
+        this.$message({
+          message: '请选择要删除的记录',
+          type: 'warning'
+        });
         return
       }
-      let ids = ''
-      for (let i = 0, len = this.tableList.length; i < len; i++) {
-        ids += ids ? ',' + this.tableList[i]['id'] : this.tableList[i]['id']
-      }
-      let params = {
-        type: this.type,
-        id: ids
-      }
-      fetchList('index/delete', 'get', params).then(res=>{
-        if(res.result) { 
-          this.search()
+      this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        let params = {
+          type: this.type,
+          id: this.tableList.join(',')
         }
+        fetchList('index/delete', 'get', params).then(res=>{
+        if(res.result) { 
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          });
+          this.setSearch()
+        }
+      })
       })
     },
     excelImportData(){
